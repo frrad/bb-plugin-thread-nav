@@ -21,6 +21,8 @@
     "server.ts",
     "app.tsx",
     "order.ts",
-    "order.test.ts"
+    "order.test.ts",
+    "pick.ts",
+    "pick.test.ts"
   ]
 }

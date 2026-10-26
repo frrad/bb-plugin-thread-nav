@@ -1,4 +1,4 @@
-// bb-plugin-unread-nav — backend entry. Everything happens in app.tsx; the
+// bb-plugin-thread-nav — backend entry. Everything happens in app.tsx; the
 // server only exists because bb requires one.
 import type { BbPluginApi } from "@get-bb/plugin-sdk";
 

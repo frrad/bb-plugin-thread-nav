@@ -1,16 +1,16 @@
 {
-  "name": "bb-plugin-unread-nav",
-  "version": "0.1.0",
+  "name": "bb-plugin-thread-nav",
+  "version": "0.2.0",
   "type": "module",
   "engines": {
     "bb": ">=0.47",
     "bbPluginSdk": ">=0.6.79"
   },
   "bb": {
-    "name": "Unread Nav",
-    "description": "Jump to the next unread thread with Cmd+U and show unread threads in bold in the sidebar.",
+    "name": "Thread Nav",
+    "description": "Jump to the next unread thread with Cmd+U, show unread threads in bold, and open another thread instead of the new-thread screen after archiving.",
     "branding": {
-      "icon": "MailOpen"
+      "icon": "Navigation"
     },
     "server": "./server.ts",
     "app": "./app.tsx",
@@ -29,7 +29,7 @@
     "typescript": "^5.7.0"
   },
   "scripts": {
-    "test": "node --test order.test.ts",
+    "test": "node --test order.test.ts pick.test.ts",
     "typecheck": "tsc"
   }
 }
