@@ -9,7 +9,8 @@ A [bb](https://getbb.app) plugin for moving between threads quickly.
 - **Stay in a thread after archiving.** Archiving the thread you're viewing
   normally drops you on the new-thread screen. With this plugin bb opens the
   most recent unread thread instead, else the most recently updated one. With
-  no threads left, you stay on the new-thread screen.
+  no threads left, you stay on the new-thread screen. On phones (bb's compact
+  viewport) this is skipped and bb's default, the main page, stays.
 
 "Unread" matches bb's own unread dot: a finished (idle or errored) top-level
 thread you haven't opened since its last update.
