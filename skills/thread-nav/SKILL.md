@@ -35,6 +35,9 @@ on the new-thread screen. Going to the new-thread screen any other way is left
 alone: the redirect only fires when the thread you left drops out of the active
 list within 3 seconds.
 
+On phones (bb's compact viewport: under 768px wide or a coarse pointer) the
+redirect is skipped, so archiving leaves you on bb's main page.
+
 ## Source
 
 `~/Projects/bb-plugin-thread-nav` (path install; github.com/frrad/bb-plugin-thread-nav).

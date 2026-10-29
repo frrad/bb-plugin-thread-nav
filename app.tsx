@@ -11,7 +11,8 @@
 // new-thread screen then. The overlay notices that move (the route loses its
 // thread and that thread drops out of the active list) and opens another thread
 // instead. With no active threads left it does nothing, so the new-thread
-// screen stays.
+// screen stays. On phones it also does nothing: there the main page is a
+// better landing spot than a thread you didn't pick.
 import { useEffect, useRef } from "react";
 import {
   definePluginApp,
@@ -32,6 +33,8 @@ const WINDOWED_ATTRIBUTE = "data-sidebar-windowed-nav";
 const STYLE_ELEMENT_ID = "bb-plugin-thread-nav-style";
 // How long after leaving a thread its archive may still show up in the list.
 const ARCHIVE_SETTLE_MS = 3000;
+// bb's own compact-viewport test: phone width or a touch-first pointer.
+const COMPACT_VIEWPORT_QUERY = "(max-width: 767px), (pointer: coarse)";
 
 // Written by the overlay on every render, read by the commands.
 let unreadThreads: readonly SidebarThread[] = [];
@@ -165,6 +168,7 @@ function ArchiveRedirect() {
     // the archive hasn't reached the list yet. Wait for the next update.
     if (entry !== undefined && !entry.isArchived) return;
     departure.current = null;
+    if (window.matchMedia(COMPACT_VIEWPORT_QUERY).matches) return;
     const target = pickThreadAfterArchive({ threads, archivedThreadId: left.threadId });
     if (target !== null) navigate.toThread(target);
   }, [threadId, threads, status, navigate]);

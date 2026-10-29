@@ -7,7 +7,7 @@ Move between threads quickly.
 - Unread threads are drawn in bold in the sidebar.
 - Archive the thread you're viewing and bb opens another one instead of the
   new-thread screen: the most recent unread thread, else the most recently
-  updated one.
+  updated one. On phones you land on the main page instead.
 
 Both shortcuts also appear in the command palette (Cmd+Shift+P) and can be
 rebound in Settings → Keyboard.
