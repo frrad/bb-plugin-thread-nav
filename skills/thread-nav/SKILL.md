@@ -1,6 +1,6 @@
 ---
 name: thread-nav
-description: Explain or rebind the Thread Nav plugin's next/previous unread thread shortcuts, its bold unread sidebar rows, and where it goes after archiving the open thread.
+description: Explain or rebind the Thread Nav plugin's next/previous unread thread shortcuts, its bold unread sidebar rows and machine emojis, and where it goes after archiving the open thread.
 ---
 
 # Thread Nav
@@ -22,6 +22,14 @@ the listed ones, newest attention first.
 Rebind: `bb settings keyboard set plugin:thread-nav/next-unread-thread Mod+J`.
 Reset: `bb settings keyboard reset plugin:thread-nav/next-unread-thread`.
 
+## Machine emojis
+
+Sidebar titles have a visual prefix from the thread's current host: 🐒 lemur,
+🦏 rhino, 💻 MacBook (case-insensitive names). Other machines get a stable
+animal marker from their host ID; these fallback markers may repeat. Unknown
+hosts have no prefix. Stored thread titles are unchanged. Like bold styling,
+this depends on the built-in list's `.bb-thread-title` class.
+
 ## After archiving
 
 When the thread you're viewing is archived (Mod+Shift+A, the row action, or
@@ -40,5 +48,5 @@ redirect is skipped, so archiving leaves you on bb's main page.
 
 ## Source
 
-`~/Projects/bb-plugin-thread-nav` (path install; github.com/frrad/bb-plugin-thread-nav).
-Tests: `npm test`. Rebuild with `bb plugin build`, then `bb plugin reload thread-nav`.
+`github.com/frrad/bb-plugin-thread-nav` (Git install tracking `main`).
+Tests: `npm test`. Build with `bb plugin build`; after merging, install with `bb plugin update thread-nav --yes`.

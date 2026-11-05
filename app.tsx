@@ -2,7 +2,7 @@
 //
 // Two invisible app overlays. The unread tracker watches the sidebar's threads, keeps the unread set
 // in module state for the keyboard commands, and writes a <style> element that
-// bolds those rows. The built-in thread list stays in charge of rendering; this
+// bolds unread rows and prefixes titles with machine emojis. The built-in thread list stays in charge of rendering; this
 // plugin relies on the row attributes bb documents for its own keyboard
 // navigation (`data-sidebar-thread-id`, `data-sidebar-windowed-nav`) plus the
 // built-in list's `bb-thread-title` class for styling.
@@ -98,15 +98,38 @@ function jumpToUnread(context: PluginCommandContext, direction: Direction): void
   else openThread?.(target);
 }
 
-function buildStylesheet(threadIds: readonly string[]): string {
-  if (threadIds.length === 0) return "";
+/** A stable machine marker; host names come from bb's live sidebar view. */
+function machineEmoji(host: SidebarThread["host"]): string | null {
+  if (host === null) return null;
+  const name = host.name.trim().toLowerCase();
+  if (name === "lemur") return "🐒";
+  if (name === "rhino") return "🦏";
+  if (name.includes("macbook")) return "💻";
+  // New machines get a stable marker without needing configuration.
+  const markers = ["🦊", "🐻", "🐼", "🐸", "🦁", "🐯", "🐨", "🐙"];
+  let hash = 0;
+  for (const char of host.id) hash = (Math.imul(hash, 31) + char.charCodeAt(0)) >>> 0;
+  return markers[hash % markers.length]!;
+}
+
+function titleSelector(id: string): string {
+  const anchor = `a[data-sidebar-thread-id="${CSS.escape(id)}"]`;
+  return `${anchor} ~ .bb-thread-title, ${anchor} ~ * .bb-thread-title`;
+}
+
+function buildStylesheet(threads: readonly SidebarThread[], unreadIds: readonly string[]): string {
   // The row anchor is an empty click target laid over the row; the title is a
   // later sibling (or inside one) carrying bb's `bb-thread-title` class.
-  const titles = threadIds.map((id) => {
-    const anchor = `a[data-sidebar-thread-id="${CSS.escape(id)}"]`;
-    return `${anchor} ~ .bb-thread-title, ${anchor} ~ * .bb-thread-title`;
+  const bold = unreadIds.length
+    ? `${unreadIds.map(titleSelector).join(",\n")} { font-weight: 650; }\n`
+    : "";
+  const markers = threads.flatMap((thread) => {
+    const emoji = machineEmoji(thread.host);
+    if (emoji === null) return [];
+    const selector = titleSelector(thread.id).split(", ").map((part) => `${part}::before`).join(", ");
+    return `${selector} { content: "${emoji}\\00a0"; font-weight: 400; }`;
   });
-  return `${titles.join(",\n")} {\n  font-weight: 650;\n}\n`;
+  return bold + markers.join("\n");
 }
 
 function UnreadTracker() {
@@ -116,7 +139,7 @@ function UnreadTracker() {
   unreadThreads = unread;
   openThread = (threadId) => navigate.toThread(threadId);
 
-  const stylesheet = buildStylesheet(unread.map((thread) => thread.id));
+  const stylesheet = buildStylesheet(threads, unread.map((thread) => thread.id));
   useEffect(() => {
     let style = document.getElementById(STYLE_ELEMENT_ID);
     if (style === null) {
