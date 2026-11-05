@@ -7,7 +7,10 @@ A [bb](https://getbb.app) plugin for moving between threads quickly.
   command palette and can be rebound in Settings → Keyboard.
 - **Bold titles** for unread threads in the sidebar.
 - **Machine emojis** before sidebar titles: 🐒 lemur, 🦏 rhino, and 💻 MacBook.
-  Other machines get a stable animal marker based on their machine ID. Threads
+  Customize each machine in **Settings → Thread Nav → Machine emojis**.
+  Save a blank field to hide its marker, or **Use default** to restore the automatic
+  choice. Settings persist across reloads, apply across clients, and follow machine
+  IDs across renames. Other machines get a stable animal marker by default. Threads
   without a known machine have no marker. Markers follow the thread’s current
   machine and also appear on nested and pinned rows. Stored titles stay intact.
 - **Stay in a thread after archiving.** Archiving the thread you're viewing
@@ -35,7 +38,7 @@ bb plugin install .
 ## Develop
 
 ```sh
-npm test           # node --test order.test.ts pick.test.ts
+npm test           # navigation, machine marker, and settings persistence tests
 npm run typecheck
 bb plugin build . && bb plugin reload thread-nav
 ```

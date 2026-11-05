@@ -5,7 +5,7 @@ description: Explain or rebind the Thread Nav plugin's next/previous unread thre
 
 # Thread Nav
 
-Frontend-only plugin; it has no CLI commands or settings.
+The plugin has a settings page at **Settings → Thread Nav**, and no CLI commands.
 
 ## Unread navigation
 
@@ -23,6 +23,14 @@ Rebind: `bb settings keyboard set plugin:thread-nav/next-unread-thread Mod+J`.
 Reset: `bb settings keyboard reset plugin:thread-nav/next-unread-thread`.
 
 ## Machine emojis
+
+Configure each enrolled machine in **Settings → Thread Nav → Machine emojis**.
+Enter a marker and click Save. Save a blank field to hide it; Use default removes
+its override and restores the automatic choice. A preview appears beneath each
+machine. Choices are stored per machine ID in plugin KV storage, survive plugin
+reloads, and update open clients immediately. Renaming a machine preserves its
+custom choice. Offline machines are included. Inputs allow up to 32 characters
+without control characters (multi-codepoint emojis are supported).
 
 Sidebar titles have a visual prefix from the thread's current host: 🐒 lemur,
 🦏 rhino, 💻 MacBook (case-insensitive names). Other machines get a stable
