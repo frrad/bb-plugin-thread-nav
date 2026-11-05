@@ -1,14 +1,14 @@
 {
   "name": "bb-plugin-thread-nav",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "engines": {
-    "bb": ">=0.47",
-    "bbPluginSdk": ">=0.6.79"
+    "bb": ">=0.48.1",
+    "bbPluginSdk": ">=0.6.104"
   },
   "bb": {
     "name": "Thread Nav",
-    "description": "Jump to the next unread thread with Cmd+U, show unread threads in bold, and open another thread instead of the new-thread screen after archiving.",
+    "description": "Jump between unread threads, bold unread sidebar titles, show a machine emoji on each thread, and open another thread after archiving.",
     "branding": {
       "icon": "Navigation"
     },
@@ -19,7 +19,7 @@
     ]
   },
   "devDependencies": {
-    "@get-bb/plugin-sdk": "0.6.79",
+    "@get-bb/plugin-sdk": "0.6.104",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",

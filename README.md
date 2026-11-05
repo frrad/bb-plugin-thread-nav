@@ -6,6 +6,10 @@ A [bb](https://getbb.app) plugin for moving between threads quickly.
   sidebar, wrapping to the top. **Cmd+Shift+U** goes upward. Both are in the
   command palette and can be rebound in Settings → Keyboard.
 - **Bold titles** for unread threads in the sidebar.
+- **Machine emojis** before sidebar titles: 🐒 lemur, 🦏 rhino, and 💻 MacBook.
+  Other machines get a stable animal marker based on their machine ID. Threads
+  without a known machine have no marker. Markers follow the thread’s current
+  machine and also appear on nested and pinned rows. Stored titles stay intact.
 - **Stay in a thread after archiving.** Archiving the thread you're viewing
   normally drops you on the new-thread screen. With this plugin bb opens the
   most recent unread thread instead, else the most recently updated one. With
@@ -15,7 +19,7 @@ A [bb](https://getbb.app) plugin for moving between threads quickly.
 "Unread" matches bb's own unread dot: a finished (idle or errored) top-level
 thread you haven't opened since its last update.
 
-The bold styling targets the built-in thread list's `.bb-thread-title` class,
+The bold styling and emoji prefixes target the built-in thread list's `.bb-thread-title` class,
 which isn't a public API, so a bb update can break it. The shortcuts only use
 documented sidebar attributes.
 
