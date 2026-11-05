@@ -1,4 +1,4 @@
-import { defineRpcContract } from "@get-bb/plugin-sdk";
+import type { PluginRpcContract } from "@get-bb/plugin-sdk";
 import { z } from "zod";
 
 export const emojiValue = z.string().max(32, "Use at most 32 characters.").refine(
@@ -6,7 +6,7 @@ export const emojiValue = z.string().max(32, "Use at most 32 characters.").refin
 );
 export const overridesSchema = z.record(z.string(), emojiValue);
 export const EMOJI_TAG = "machine-emojis";
-export const contract = defineRpcContract({
+export const contract = {
   emojis_get: {
     input: z.null(), output: overridesSchema,
     tags: () => [EMOJI_TAG],
@@ -18,4 +18,4 @@ export const contract = defineRpcContract({
     input: z.object({ hostId: z.string().min(1).max(128), emoji: emojiValue.nullable() }).strict(),
     output: z.null(),
   },
-});
+} satisfies PluginRpcContract;
