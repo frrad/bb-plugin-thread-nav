@@ -1,6 +1,6 @@
 {
   "name": "bb-plugin-thread-nav",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "engines": {
     "bb": ">=0.48.1",
@@ -8,7 +8,7 @@
   },
   "bb": {
     "name": "Thread Nav",
-    "description": "Jump between unread threads, bold unread sidebar titles, show a machine emoji on each thread, and open another thread after archiving.",
+    "description": "Jump between unread threads, bold unread sidebar titles, show a configurable machine emoji on each thread, and open another thread after archiving.",
     "branding": {
       "icon": "Navigation"
     },
@@ -25,11 +25,15 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "better-sqlite3": "^12.11.1",
+    "cron-parser": "^5.10.3",
     "hono": "^4.13.14",
     "typescript": "^5.7.0"
   },
   "scripts": {
-    "test": "node --test order.test.ts pick.test.ts",
+    "test": "node --test *.test.ts",
     "typecheck": "tsc"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
   }
 }

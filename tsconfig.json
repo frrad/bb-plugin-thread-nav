@@ -18,11 +18,7 @@
     "allowImportingTsExtensions": true
   },
   "include": [
-    "server.ts",
-    "app.tsx",
-    "order.ts",
-    "order.test.ts",
-    "pick.ts",
-    "pick.test.ts"
+    "*.ts",
+    "*.tsx"
   ]
 }

@@ -17,10 +17,15 @@ import { useEffect, useRef } from "react";
 import {
   definePluginApp,
   experimental_useSidebarThreads,
+  experimental_useRpcQuery,
   useBbContext,
   useBbNavigate,
 } from "@get-bb/plugin-sdk/app";
 import type { PluginCommandContext } from "@get-bb/plugin-sdk/app";
+import { contract } from "./contract.ts";
+import { machineEmoji, cssString } from "./emojis.ts";
+import type { EmojiOverrides } from "./emojis.ts";
+import { MachineEmojiSettings } from "./settings.tsx";
 import { pickUnreadThread } from "./order.ts";
 import { pickThreadAfterArchive } from "./pick.ts";
 import type { Direction } from "./order.ts";
@@ -98,36 +103,22 @@ function jumpToUnread(context: PluginCommandContext, direction: Direction): void
   else openThread?.(target);
 }
 
-/** A stable machine marker; host names come from bb's live sidebar view. */
-function machineEmoji(host: SidebarThread["host"]): string | null {
-  if (host === null) return null;
-  const name = host.name.trim().toLowerCase();
-  if (name === "lemur") return "🐒";
-  if (name === "rhino") return "🦏";
-  if (name.includes("macbook")) return "💻";
-  // New machines get a stable marker without needing configuration.
-  const markers = ["🦊", "🐻", "🐼", "🐸", "🦁", "🐯", "🐨", "🐙"];
-  let hash = 0;
-  for (const char of host.id) hash = (Math.imul(hash, 31) + char.charCodeAt(0)) >>> 0;
-  return markers[hash % markers.length]!;
-}
-
 function titleSelector(id: string): string {
   const anchor = `a[data-sidebar-thread-id="${CSS.escape(id)}"]`;
   return `${anchor} ~ .bb-thread-title, ${anchor} ~ * .bb-thread-title`;
 }
 
-function buildStylesheet(threads: readonly SidebarThread[], unreadIds: readonly string[]): string {
+function buildStylesheet(threads: readonly SidebarThread[], unreadIds: readonly string[], overrides: EmojiOverrides): string {
   // The row anchor is an empty click target laid over the row; the title is a
   // later sibling (or inside one) carrying bb's `bb-thread-title` class.
   const bold = unreadIds.length
     ? `${unreadIds.map(titleSelector).join(",\n")} { font-weight: 650; }\n`
     : "";
   const markers = threads.flatMap((thread) => {
-    const emoji = machineEmoji(thread.host);
+    const emoji = machineEmoji(thread.host, overrides);
     if (emoji === null) return [];
     const selector = titleSelector(thread.id).split(", ").map((part) => `${part}::before`).join(", ");
-    return `${selector} { content: "${emoji}\\00a0"; font-weight: 400; }`;
+    return `${selector} { content: ${cssString(emoji + "\u00a0")}; font-weight: 400; }`;
   });
   return bold + markers.join("\n");
 }
@@ -135,11 +126,12 @@ function buildStylesheet(threads: readonly SidebarThread[], unreadIds: readonly 
 function UnreadTracker() {
   const { threads } = experimental_useSidebarThreads();
   const navigate = useBbNavigate();
+  const { data: overrides } = experimental_useRpcQuery({ contract, method: "emojis_get", input: null });
   const unread = threads.filter(isUnreadThread);
   unreadThreads = unread;
   openThread = (threadId) => navigate.toThread(threadId);
 
-  const stylesheet = buildStylesheet(threads, unread.map((thread) => thread.id));
+  const stylesheet = buildStylesheet(threads, unread.map((thread) => thread.id), overrides ?? {});
   useEffect(() => {
     let style = document.getElementById(STYLE_ELEMENT_ID);
     if (style === null) {
@@ -200,6 +192,12 @@ function ArchiveRedirect() {
 }
 
 export default definePluginApp((app) => {
+  app.slots.settingsSection({
+    id: "machine-emojis",
+    title: "Machine emojis",
+    description: "Choose the marker shown before each machine’s sidebar thread titles.",
+    component: MachineEmojiSettings,
+  });
   app.slots.experimental_appOverlay({ id: "unread-tracker", component: UnreadTracker });
   app.slots.experimental_appOverlay({ id: "archive-redirect", component: ArchiveRedirect });
   app.commands.register({
