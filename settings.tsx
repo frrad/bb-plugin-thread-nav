@@ -4,7 +4,7 @@ import { contract } from "./contract.ts";
 import { defaultMachineEmoji, modelKey } from "./emojis.ts";
 import type { Machine } from "./emojis.ts";
 
-const buttonStyle = { border: "1px solid var(--border)", borderRadius: 6, padding: "6px 12px" };
+const buttonStyle = { border: "1px solid var(--border)", borderRadius: 6, padding: "3px 10px" };
 
 function MachineEmojiRow({ machine, override, refresh }: {
   machine: Machine; override: string | undefined; refresh: () => Promise<void>;
@@ -34,11 +34,11 @@ function MachineEmojiRow({ machine, override, refresh }: {
   }
 
   return <form onSubmit={(event) => { event.preventDefault(); void save(draft); }}
-    style={{ borderBottom: "1px solid var(--border)", padding: "16px 0" }}>
-    <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+    style={{ borderBottom: "1px solid var(--border)", padding: "6px 0" }}>
+    <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
       <div style={{ flex: "1 1 180px", minWidth: 0 }}>
         <label htmlFor={`emoji-${machine.id}`} style={{ fontWeight: 500 }}>{machine.name}</label>
-        <div style={{ color: "var(--muted-foreground)", fontSize: 12, marginTop: 4 }}>
+        <div style={{ color: "var(--muted-foreground)", fontSize: 12, marginTop: 0 }}>
           {override === undefined ? `Automatic · ${automatic}` : override === "" ? "Hidden" : "Custom emoji"}
         </div>
       </div>
@@ -46,18 +46,15 @@ function MachineEmojiRow({ machine, override, refresh }: {
         onChange={(event) => { setDraft(event.target.value); setSaved(false); }}
         disabled={saving} maxLength={32} autoComplete="off" placeholder="No emoji"
         style={{ width: 92, border: "1px solid var(--border)", borderRadius: 6,
-          background: "var(--background)", color: "var(--foreground)", padding: "6px 10px", fontSize: 20 }} />
+          background: "var(--background)", color: "var(--foreground)", padding: "2px 8px", fontSize: 18 }} />
       <button type="submit" disabled={saving || draft.trim() === current} style={buttonStyle}>
         {saving ? "Saving…" : "Save"}
       </button>
       <button type="button" disabled={saving || override === undefined} style={buttonStyle}
         onClick={() => { void save(null); }}>Use default</button>
     </div>
-    <div style={{ marginTop: 10, color: "var(--muted-foreground)", fontSize: 13 }}>
-      Preview: <span style={{ color: "var(--foreground)" }}>{draft.trim() ? `${draft.trim()} ` : ""}Thread title</span>
-    </div>
-    {error && <p role="alert" style={{ color: "var(--destructive)", marginTop: 8 }}>{error}</p>}
-    {saved && <p role="status" style={{ color: "var(--muted-foreground)", marginTop: 8 }}>Saved</p>}
+    {error && <p role="alert" style={{ color: "var(--destructive)", marginTop: 2 }}>{error}</p>}
+    {saved && <p role="status" style={{ color: "var(--muted-foreground)", marginTop: 2 }}>Saved</p>}
   </form>;
 }
 
@@ -100,8 +97,8 @@ function ModelEmojiRow({ model, override, refresh }: {
   }
   const id = `model-${modelKey(model)}`;
   return <form onSubmit={event => { event.preventDefault(); void save(draft); }}
-    style={{ borderBottom: "1px solid var(--border)", padding: "16px 0" }}>
-    <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+    style={{ borderBottom: "1px solid var(--border)", padding: "6px 0" }}>
+    <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
       <div style={{ flex: "1 1 180px", minWidth: 0 }}>
         <label htmlFor={id} style={{ fontWeight: 500 }}>{model.name}</label>
         <div style={{ color: "var(--muted-foreground)", fontSize: 12 }}>{model.providerId} / {model.model}</div>
@@ -109,12 +106,9 @@ function ModelEmojiRow({ model, override, refresh }: {
       <input id={id} aria-label={`Emoji for ${model.providerId} ${model.name}`} value={draft}
         onChange={event => setDraft(event.target.value)} disabled={saving} maxLength={32} placeholder="No emoji"
         style={{ width: 92, border: "1px solid var(--border)", borderRadius: 6, background: "var(--background)",
-          color: "var(--foreground)", padding: "6px 10px", fontSize: 20 }} />
+          color: "var(--foreground)", padding: "2px 8px", fontSize: 18 }} />
       <button type="submit" style={buttonStyle} disabled={saving || draft.trim() === (override ?? "")}>{saving ? "Saving…" : "Save"}</button>
       <button type="button" style={buttonStyle} disabled={saving || override === undefined} onClick={() => void save(null)}>Clear</button>
-    </div>
-    <div style={{ marginTop: 10, color: "var(--muted-foreground)", fontSize: 13 }}>
-      Preview: 🐒 {draft.trim() || "·"} Thread title
     </div>
     {error && <p role="alert" style={{ color: "var(--destructive)" }}>{error}</p>}
   </form>;
@@ -125,12 +119,11 @@ export function ModelEmojiSettings() {
   const emojis = experimental_useRpcQuery({ contract, method: "model_emojis_get", input: null });
   const error = models.error ?? emojis.error;
   return <div style={{ maxWidth: 720 }}>
-    <p style={{ color: "var(--muted-foreground)" }}>Markers match the exact provider and model, across all reasoning levels.
-      Machine comes first, then model. A muted dot marks a missing emoji; both positions disappear when neither has one.
-      Leave a model blank to give it no marker.</p>
+    <p style={{ color: "var(--muted-foreground)", marginBottom: 6 }}>Models you’ve used or assigned an emoji, across all reasoning levels.
+      Machine comes first, then model; a dot marks a missing emoji.</p>
     {error && <div role="alert"><p>{error.message}</p><button style={buttonStyle} onClick={() => { void models.refetch(); void emojis.refetch(); }}>Retry</button></div>}
     {(models.isLoading || emojis.isLoading) && <p role="status">Loading models…</p>}
-    {models.data?.length === 0 && <p>No models available. Refresh after connecting a provider.</p>}
+    {models.data?.length === 0 && <p>No used or configured models yet.</p>}
     {emojis.data && models.data?.map(model => <ModelEmojiRow key={modelKey(model)} model={model}
       override={emojis.data![modelKey(model)]} refresh={emojis.refetch} />)}
     <button type="button" style={buttonStyle} onClick={() => void models.refetch()}>Refresh models</button>

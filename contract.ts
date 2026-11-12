@@ -25,7 +25,7 @@ export const contract = {
   },
   models_list: {
     input: z.null(), output: z.array(modelSchema.extend({ name: z.string() })),
-    tags: () => [MODEL_EMOJI_TAG],
+    tags: () => [MODEL_EMOJI_TAG, "used-models"],
   },
   thread_models: {
     input: z.object({ keys: z.array(z.string()).max(10000) }).strict(),
