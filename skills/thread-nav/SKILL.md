@@ -1,6 +1,6 @@
 ---
 name: thread-nav
-description: Explain or rebind the Thread Nav plugin's next/previous unread thread shortcuts, its bold unread sidebar rows and machine emojis, and where it goes after archiving the open thread.
+description: Explain or rebind the Thread Nav plugin's next/previous unread thread shortcuts, its bold unread sidebar rows and machine and model emojis, and where it goes after archiving the open thread.
 ---
 
 # Thread Nav
@@ -26,8 +26,7 @@ Reset: `bb settings keyboard reset plugin:thread-nav/next-unread-thread`.
 
 Configure each enrolled machine in **Settings → Thread Nav → Machine emojis**.
 Enter a marker and click Save. Save a blank field to hide it; Use default removes
-its override and restores the automatic choice. A preview appears beneath each
-machine. Choices are stored per machine ID in plugin KV storage, survive plugin
+its override and restores the automatic choice. Choices are stored per machine ID in plugin KV storage, survive plugin
 reloads, and update open clients immediately. Renaming a machine preserves its
 custom choice. Offline machines are included. Inputs allow up to 32 characters
 without control characters (multi-codepoint emojis are supported).
@@ -42,8 +41,13 @@ this depends on the built-in list's `.bb-thread-title` class.
 
 Configure exact provider/model pairs in **Settings → Thread Nav → Model emojis**.
 There is no automatic model marker. Save a blank field or Clear to remove one.
-Reasoning levels share the model's marker. Configured models remain editable
-when their provider is unavailable; Refresh models reloads the catalogs.
+Reasoning levels share the model's marker. The list includes models used in
+visible active or archived threads (including older choices within a thread),
+plus any model with a saved emoji setting. Catalogs only supply display names;
+unused catalog entries stay hidden. Discovery is cached incrementally, and
+Refresh models scans for new usage. Once discovered, used models stay listed
+even if their threads are later deleted. Configured models remain editable
+when their provider is unavailable. Settings rows use compact spacing.
 
 Titles reserve two positions: machine first, model second. A missing marker is
 a muted `·`; when both are missing, no prefix appears. Markers have fixed-width

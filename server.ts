@@ -1,6 +1,7 @@
 import type { BbPluginApi } from "@get-bb/plugin-sdk";
 import { contract, EMOJI_TAG, emojiValue, MODEL_EMOJI_TAG, modelSchema, threadModelKey } from "./contract.ts";
 
+import { usedModels } from "./used-models.ts";
 import { modelKey } from "./emojis.ts";
 
 const MODEL_PREFIX = "model-emoji:";
@@ -15,6 +16,15 @@ export default async function plugin(bb: BbPluginApi): Promise<void> {
       return parsed.success ? [[key, parsed.data]] : [];
     }));
   }
+  // Share the history scan when multiple settings clients refresh together.
+  let historyRead: ReturnType<typeof usedModels> | null = null;
+  function readHistory() {
+    if (!historyRead) historyRead = usedModels(bb).finally(() => { historyRead = null; });
+    return historyRead;
+  }
+  for (const event of ["thread.active", "thread.idle", "thread.archived", "thread.unarchived", "thread.deleted"] as const) {
+    bb.events.on(event, () => { bb.rpc.experimental_invalidate(["used-models"]); });
+  }
   bb.rpc.register(contract, {
     model_emojis_get: () => overridesFor(MODEL_PREFIX),
     model_emoji_set: async ({ providerId, model, emoji }) => {
@@ -26,16 +36,8 @@ export default async function plugin(bb: BbPluginApi): Promise<void> {
     },
     models_list: async () => {
       const choices = new Map<string, { providerId: string; model: string; name: string }>();
-      const providers = await bb.sdk.providers.list();
-      const catalogs = await Promise.allSettled(providers.map(async provider => {
-        const catalog = await bb.sdk.providers.models({ providerId: provider.id });
-        for (const model of catalog.models) {
-          const choice = { providerId: model.routeProviderId ?? provider.id, model: model.model, name: model.displayName };
-          choices.set(modelKey(choice), choice);
-        }
-      }));
-      for (const result of catalogs) if (result.status === "rejected") bb.log.warn(`Model catalog unavailable: ${String(result.reason)}`);
-      // Keep configured models editable even when a provider is offline or drops an old model.
+      for (const choice of await readHistory()) choices.set(modelKey(choice), { ...choice, name: choice.model });
+      // Keep configured choices even if their thread or provider no longer exists.
       for (const key of Object.keys(await overridesFor(MODEL_PREFIX))) {
         try {
           const [providerId, model] = JSON.parse(key);
@@ -43,6 +45,17 @@ export default async function plugin(bb: BbPluginApi): Promise<void> {
           if (!choices.has(key)) choices.set(key, { ...choice, name: model });
         } catch { /* Ignore malformed stored keys. */ }
       }
+      // Catalogs supply labels only; they never add models to the list.
+      const providerIds = [...new Set([...choices.values()].map(choice => choice.providerId))];
+      const catalogs = await Promise.allSettled(providerIds.map(async providerId => {
+        const catalog = await bb.sdk.providers.models({ providerId });
+        for (const model of catalog.models) {
+          const key = modelKey({ providerId: model.routeProviderId ?? providerId, model: model.model });
+          const choice = choices.get(key);
+          if (choice) choice.name = model.displayName;
+        }
+      }));
+      for (const result of catalogs) if (result.status === "rejected") bb.log.warn(`Model catalog unavailable: ${String(result.reason)}`);
       return [...choices.values()].sort((a, b) => a.providerId.localeCompare(b.providerId) || a.name.localeCompare(b.name));
     },
     thread_models: async ({ keys }) => {
