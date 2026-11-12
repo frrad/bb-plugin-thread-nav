@@ -22,3 +22,14 @@ export function machineEmoji(host: Machine | null, overrides: EmojiOverrides): s
 export function cssString(value: string): string {
   return '"' + Array.from(value, (char) => `\\${char.codePointAt(0)!.toString(16)} `).join("") + '"';
 }
+
+export interface Model { providerId: string; model: string }
+export function modelKey(model: Model): string {
+  return JSON.stringify([model.providerId, model.model]);
+}
+export function modelEmoji(model: Model | null | undefined, overrides: EmojiOverrides): string | null {
+  return model ? overrides[modelKey(model)] || null : null;
+}
+export function markerPair(machine: string | null, model: string | null): [string, string] | null {
+  return machine || model ? [machine || "·", model || "·"] : null;
+}

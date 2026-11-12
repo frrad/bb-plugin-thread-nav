@@ -5,6 +5,9 @@ Move between threads quickly.
 - **Cmd+U** opens the next unread thread below the current one in the
   sidebar, wrapping to the top. **Cmd+Shift+U** goes upward.
 - Unread threads are drawn in bold in the sidebar.
+- Set machine and exact-model emojis in Settings → Thread Nav. Each title
+  shows machine then model, with a muted dot for a missing marker. Both
+  positions disappear when neither has a marker.
 - Archive the thread you're viewing and bb opens another one instead of the
   new-thread screen: the most recent unread thread, else the most recently
   updated one. On phones you land on the main page instead.

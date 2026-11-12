@@ -18,14 +18,15 @@ import {
   definePluginApp,
   experimental_useSidebarThreads,
   experimental_useRpcQuery,
+  experimental_useRpcKeyedQuery,
   useBbContext,
   useBbNavigate,
 } from "@get-bb/plugin-sdk/app";
 import type { PluginCommandContext } from "@get-bb/plugin-sdk/app";
 import { contract } from "./contract.ts";
-import { machineEmoji, cssString } from "./emojis.ts";
-import type { EmojiOverrides } from "./emojis.ts";
-import { MachineEmojiSettings } from "./settings.tsx";
+import { machineEmoji, modelEmoji, markerPair, cssString } from "./emojis.ts";
+import type { EmojiOverrides, Model } from "./emojis.ts";
+import { MachineEmojiSettings, ModelEmojiSettings } from "./settings.tsx";
 import { pickUnreadThread } from "./order.ts";
 import { pickThreadAfterArchive } from "./pick.ts";
 import type { Direction } from "./order.ts";
@@ -108,30 +109,42 @@ function titleSelector(id: string): string {
   return `${anchor} ~ .bb-thread-title, ${anchor} ~ * .bb-thread-title`;
 }
 
-function buildStylesheet(threads: readonly SidebarThread[], unreadIds: readonly string[], overrides: EmojiOverrides): string {
+function buildStylesheet(threads: readonly SidebarThread[], unreadIds: readonly string[], overrides: EmojiOverrides, models: Record<string, Model | null>, modelOverrides: EmojiOverrides): string {
   // The row anchor is an empty click target laid over the row; the title is a
   // later sibling (or inside one) carrying bb's `bb-thread-title` class.
   const bold = unreadIds.length
     ? `${unreadIds.map(titleSelector).join(",\n")} { font-weight: 650; }\n`
     : "";
   const markers = threads.flatMap((thread) => {
-    const emoji = machineEmoji(thread.host, overrides);
-    if (emoji === null) return [];
-    const selector = titleSelector(thread.id).split(", ").map((part) => `${part}::before`).join(", ");
-    return `${selector} { content: ${cssString(emoji + "\u00a0")}; font-weight: 400; }`;
+    const pair = markerPair(machineEmoji(thread.host, overrides), modelEmoji(models[modelReadKey(thread)], modelOverrides));
+    if (pair === null) return [];
+    const selectors = titleSelector(thread.id).split(", ");
+    return selectors.map(selector => `${selector} { position: relative; padding-left: 3.2em; }
+${selector}::before, ${selector}::after { position: absolute; top: 0; width: 1.4em; overflow: hidden; white-space: nowrap; text-align: center; font-weight: 400; color: var(--muted-foreground); pointer-events: none; }
+${selector}::before { left: 0; content: ${cssString(pair[0])}; }
+${selector}::after { left: 1.5em; content: ${cssString(pair[1])}; }`).join("\n");
   });
   return bold + markers.join("\n");
+}
+
+function modelReadKey(thread: SidebarThread): string {
+  return JSON.stringify([thread.id, thread.updatedAt, thread.providerId]);
 }
 
 function UnreadTracker() {
   const { threads } = experimental_useSidebarThreads();
   const navigate = useBbNavigate();
   const { data: overrides } = experimental_useRpcQuery({ contract, method: "emojis_get", input: null });
+  const { data: modelOverrides } = experimental_useRpcQuery({ contract, method: "model_emojis_get", input: null });
+  const { data: models } = experimental_useRpcKeyedQuery({ contract, method: "thread_models",
+    keys: threads.filter(thread => !thread.isHidden && !thread.isArchived).map(modelReadKey),
+    enabled: Object.values(modelOverrides ?? {}).some(Boolean),
+  });
   const unread = threads.filter(isUnreadThread);
   unreadThreads = unread;
   openThread = (threadId) => navigate.toThread(threadId);
 
-  const stylesheet = buildStylesheet(threads, unread.map((thread) => thread.id), overrides ?? {});
+  const stylesheet = buildStylesheet(threads, unread.map((thread) => thread.id), overrides ?? {}, models ?? {}, modelOverrides ?? {});
   useEffect(() => {
     let style = document.getElementById(STYLE_ELEMENT_ID);
     if (style === null) {
@@ -192,6 +205,12 @@ function ArchiveRedirect() {
 }
 
 export default definePluginApp((app) => {
+  app.slots.settingsSection({
+    id: "model-emojis",
+    title: "Model emojis",
+    description: "Choose a marker for each exact model, shown after the machine marker.",
+    component: ModelEmojiSettings,
+  });
   app.slots.settingsSection({
     id: "machine-emojis",
     title: "Machine emojis",
