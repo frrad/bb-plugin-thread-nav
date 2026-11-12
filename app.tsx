@@ -119,10 +119,10 @@ function buildStylesheet(threads: readonly SidebarThread[], unreadIds: readonly 
     const pair = markerPair(machineEmoji(thread.host, overrides), modelEmoji(models[modelReadKey(thread)], modelOverrides));
     if (pair === null) return [];
     const selectors = titleSelector(thread.id).split(", ");
-    return selectors.map(selector => `${selector} { position: relative; padding-left: 3.2em; }
-${selector}::before, ${selector}::after { position: absolute; top: 0; width: 1.4em; overflow: hidden; white-space: nowrap; text-align: center; font-weight: 400; color: var(--muted-foreground); pointer-events: none; }
+    return selectors.map(selector => `${selector} { position: relative; padding-left: 2.3em; }
+${selector}::before, ${selector}::after { position: absolute; top: 0; width: 1em; overflow: hidden; white-space: nowrap; text-align: center; font-weight: 400; color: var(--muted-foreground); pointer-events: none; }
 ${selector}::before { left: 0; content: ${cssString(pair[0])}; }
-${selector}::after { left: 1.5em; content: ${cssString(pair[1])}; }`).join("\n");
+${selector}::after { left: 1em; content: ${cssString(pair[1])}; }`).join("\n");
   });
   return bold + markers.join("\n");
 }
