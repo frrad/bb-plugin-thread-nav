@@ -8,7 +8,7 @@ type ThreadEventRow = Awaited<ReturnType<BbPluginApi["sdk"]["threads"]["events"]
 
 const USED_PREFIX = "used-model:";
 const CURSOR_PREFIX = "model-history:";
-const PAGE_SIZE = 200;
+const PAGE_SIZE = 100;
 const cursorSchema = z.object({ providerId: z.string(), updatedAt: z.number(), afterSeq: z.number() });
 
 function eventModel(event: ThreadEventRow): unknown {

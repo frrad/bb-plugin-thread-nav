@@ -134,8 +134,11 @@ test("used-model discovery pages both thread lists and model-event history", asy
   const { bb, harness } = createFakePluginHost({ pluginId: "thread-nav", sdk: {
     threads: {
       list: async args => args?.archived ? [] : threads.slice(args?.offset ?? 0, (args?.offset ?? 0) + (args?.limit ?? 200)),
-      events: { list: async args => args.threadId === "thread-200"
-        ? events.filter(event => event.seq > Number(args.afterSeq ?? 0)).slice(0, Number(args.limit)) : [] },
+      events: { list: async args => {
+        assert.ok(Number(args.limit) <= 100, "BB caps event pages at 100");
+        return args.threadId === "thread-200"
+          ? events.filter(event => event.seq > Number(args.afterSeq ?? 0)).slice(0, Number(args.limit)) : [];
+      } },
     },
     providers: { models: async () => { throw new Error("offline"); } },
   } });
