@@ -25,3 +25,48 @@ test("machine settings persist across reloads, preserve other machines and reset
     assert.deepEqual(await call("emojis_get"), { "host-two": "" });
   } finally { await harness.lifecycle.dispose(); }
 });
+
+test("model settings persist independently, reject invalid input, and survive missing catalogs", async () => {
+  let { bb, harness } = createFakePluginHost({
+    pluginId: "thread-nav", sdk: { providers: { list: async () => [] } },
+  });
+  try {
+    await plugin(bb);
+    const call = (method: string, input: unknown = null) => harness.behavior.callRpc(method, input);
+    await call("model_emoji_set", { providerId: "codex", model: "sol", emoji: " ☀️ " });
+    await call("model_emoji_set", { providerId: "other", model: "sol", emoji: "🌙" });
+    await call("emoji_set", { hostId: "one", emoji: "🐒" });
+    ({ bb, harness } = await harness.lifecycle.reload(plugin));
+    assert.deepEqual(await call("model_emojis_get"), { '["codex","sol"]': "☀️", '["other","sol"]': "🌙" });
+    assert.deepEqual(await call("models_list"), [
+      { providerId: "codex", model: "sol", name: "sol" }, { providerId: "other", model: "sol", name: "sol" },
+    ]);
+    await call("model_emoji_set", { providerId: "codex", model: "sol", emoji: null });
+    assert.deepEqual(await call("model_emojis_get"), { '["other","sol"]': "🌙" });
+    assert.deepEqual(await call("emojis_get"), { one: "🐒" });
+    await assert.rejects(call("model_emoji_set", { providerId: "codex", model: "sol", emoji: "a\nb" }));
+    await assert.rejects(call("model_emoji_set", { providerId: "", model: "sol", emoji: "x" }));
+  } finally { await harness.lifecycle.dispose(); }
+});
+
+test("thread model reads follow saved selections and tolerate deleted threads", async () => {
+  let model = "sol";
+  const { bb, harness } = createFakePluginHost({ pluginId: "thread-nav", sdk: { threads: {
+    defaultExecutionOptions: async ({ threadId }) => {
+      if (threadId === "gone") throw new Error("HTTP 404: not found");
+      return { model, permissionMode: "full", reasoningLevel: "high", serviceTier: "default", source: "client/turn/start" };
+    },
+  } } });
+  try {
+    await plugin(bb);
+    const key = JSON.stringify(["one", 1, "codex"]);
+    const read = (keys: string[]) => harness.behavior.callRpc("thread_models", { keys });
+    assert.deepEqual(await read([key]), { [key]: { providerId: "codex", model: "sol" } });
+    model = "luna";
+    const nextKey = JSON.stringify(["one", 2, "codex"]);
+    assert.deepEqual(await read([nextKey]), { [nextKey]: { providerId: "codex", model: "luna" } });
+    const gone = JSON.stringify(["gone", 1, "codex"]);
+    assert.deepEqual(await read([gone]), { [gone]: null });
+    await assert.rejects(read(["malformed"]));
+  } finally { await harness.lifecycle.dispose(); }
+});

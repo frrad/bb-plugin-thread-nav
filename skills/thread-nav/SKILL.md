@@ -38,6 +38,23 @@ animal marker from their host ID; these fallback markers may repeat. Unknown
 hosts have no prefix. Stored thread titles are unchanged. Like bold styling,
 this depends on the built-in list's `.bb-thread-title` class.
 
+## Model emojis
+
+Configure exact provider/model pairs in **Settings → Thread Nav → Model emojis**.
+There is no automatic model marker. Save a blank field or Clear to remove one.
+Reasoning levels share the model's marker. Configured models remain editable
+when their provider is unavailable; Refresh models reloads the catalogs.
+
+Titles reserve two positions: machine first, model second. A missing marker is
+a muted `·`; when both are missing, no prefix appears. Markers have fixed-width
+positions, so titles align. Use a single emoji (including joined/flag emoji);
+longer text is clipped to its position.
+
+Model markers use the thread's saved execution selection, not an unsent composer
+change. Reads are shared and batched, refresh when the sidebar's thread version
+changes, and only run when a model marker is configured. Settings sync across
+clients and survive reloads. Stored titles are unchanged.
+
 ## After archiving
 
 When the thread you're viewing is archived (Mod+Shift+A, the row action, or
