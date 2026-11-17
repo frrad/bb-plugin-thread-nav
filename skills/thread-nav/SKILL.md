@@ -92,7 +92,7 @@ Snoozes are stored server-side (plugin KV, one key per thread). A thread wakes
 at its time (and is marked unread), or early when it finishes a turn, fails, or
 asks for input; archiving or deleting it drops the snooze. Snoozed rows and
 their nested children are hidden from the built-in list and skipped by the
-unread shortcuts. The **Snoozed** navigation page (count badge) lists snoozed
+unread shortcuts. The **Snoozed** navigation page lists snoozed
 threads by wake time with Open and Unsnooze. RPC: `snoozes_get`,
 `snooze_set {threadId, until}`, `snooze_clear {threadId}`, e.g.
 `bb plugin rpc call thread-nav snoozes_get`.

@@ -1,5 +1,5 @@
 // The Snoozed page: every snoozed thread with its wake time, to open or
-// unsnooze one early. It is a navigation destination with a count badge; the
+// unsnooze one early. It is a navigation destination; the
 // same list replaces the thread list in the sidebar while the page is open.
 import {
   experimental_Icon as Icon,
@@ -7,7 +7,6 @@ import {
   useBbNavigate,
   useRpc,
 } from "@get-bb/plugin-sdk/app";
-import type { ExperimentalBadge } from "@get-bb/plugin-sdk/app";
 import { toast } from "sonner";
 import { contract } from "./contract.ts";
 import { formatSnoozeDate, formatSnoozeTime } from "./snooze-times.ts";
@@ -24,11 +23,6 @@ function useSnoozedThreads(): SnoozedThread[] {
   return Object.entries(snoozes)
     .map(([id, until]) => ({ id, until, title: titles.get(id) ?? id }))
     .sort((a, b) => a.until - b.until);
-}
-
-export function useSnoozedBadge(): ExperimentalBadge | null {
-  const count = Object.keys(useSnoozes()).length;
-  return count === 0 ? null : { count, label: `${count} snoozed ${count === 1 ? "thread" : "threads"}` };
 }
 
 function wakeLabel(until: number): string {

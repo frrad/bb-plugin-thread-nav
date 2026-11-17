@@ -32,7 +32,7 @@ import { pickThreadAfterArchive } from "./pick.ts";
 import type { Direction } from "./order.ts";
 import { SnoozeOverlay, snoozeAction, useSnoozes } from "./snooze.tsx";
 import type { Snoozes } from "./snooze.tsx";
-import { SNOOZED_PANEL_PATH, SnoozedPage, SnoozedSidebar, useSnoozedBadge } from "./snoozed-panel.tsx";
+import { SNOOZED_PANEL_PATH, SnoozedPage, SnoozedSidebar } from "./snoozed-panel.tsx";
 
 type SidebarThread = ReturnType<typeof experimental_useSidebarThreads>["threads"][number];
 type OpenThread = (threadId: string) => void;
@@ -248,7 +248,6 @@ export default definePluginApp((app) => {
     path: SNOOZED_PANEL_PATH,
     component: SnoozedPage,
     experimental_sidebar: SnoozedSidebar,
-    experimental_useBadge: useSnoozedBadge,
   });
   app.commands.register({
     id: "next-unread-thread",
