@@ -148,3 +148,40 @@ test("used-model discovery pages both thread lists and model-event history", asy
     assert.deepEqual(models.map(choice => choice.model), ["first-page-model", "last-page-model"]);
   } finally { await harness.lifecycle.dispose(); }
 });
+
+test("snoozes persist, wake at their time as unread, and wake early on news", async (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: 1_000_000 });
+  let { bb, harness } = createFakePluginHost({ pluginId: "thread-nav", sdk: { threads: { markUnread: async () => ({}) } } });
+  try {
+    await plugin(bb);
+    const call = (method: string, input: unknown = null) => harness.behavior.callRpc(method, input);
+    await call("snooze_set", { threadId: "thr_time", until: 1_060_000 });
+    await call("snooze_set", { threadId: "thr_news", until: 9_000_000 });
+    await call("snooze_set", { threadId: "thr_ask", until: 9_000_000 });
+    await call("snooze_set", { threadId: "thr_keep", until: 9_000_000 });
+    await assert.rejects(call("snooze_set", { threadId: "thr_past", until: 999_999 }), /future/);
+    await assert.rejects(call("snooze_set", { threadId: "thr_far", until: 1_000_000 + 401 * 86_400_000 }), /400 days/);
+    ({ bb, harness } = await harness.lifecycle.reload(plugin));
+    assert.deepEqual(await call("snoozes_get"),
+      { thr_time: 1_060_000, thr_news: 9_000_000, thr_ask: 9_000_000, thr_keep: 9_000_000 });
+
+    // Not due yet: nothing wakes.
+    await harness.behavior.runSchedule("wake-snoozed");
+    assert.equal(harness.inspection.sdk.callsTo("threads.markUnread").length, 0);
+
+    t.mock.timers.setTime(1_060_000);
+    assert.deepEqual(Object.keys(await call("snoozes_get") as object).sort(), ["thr_ask", "thr_keep", "thr_news"]);
+    await harness.behavior.runSchedule("wake-snoozed");
+    assert.deepEqual(harness.inspection.sdk.callsTo("threads.markUnread"), [[{ threadId: "thr_time" }]]);
+
+    await harness.behavior.emitThreadEvent("thread.idle", { thread: makeThreadResponse({ id: "thr_news" }), lastAssistantText: null });
+    await harness.behavior.emitThreadEvent("interaction.pending",
+      { thread: makeThreadResponse({ id: "thr_ask" }), interaction: {} } as never);
+    await call("snooze_clear", { threadId: "thr_missing" });
+    assert.deepEqual(await call("snoozes_get"), { thr_keep: 9_000_000 });
+    await call("snooze_clear", { threadId: "thr_keep" });
+    assert.deepEqual(await call("snoozes_get"), {});
+    // Early wakes leave read state to bb: only the timed wake marked unread.
+    assert.equal(harness.inspection.sdk.callsTo("threads.markUnread").length, 1);
+  } finally { await harness.lifecycle.dispose(); }
+});

@@ -18,6 +18,12 @@ A [bb](https://getbb.app) plugin for moving between threads quickly.
   most recent unread thread instead, else the most recently updated one. With
   no threads left, you stay on the new-thread screen. On phones (bb's compact
   viewport) this is skipped and bb's default, the main page, stays.
+- **Snooze threads.** A clock button on a row's hover actions opens Later
+  today / Tomorrow / Later this week / This weekend / Next week, or a date and
+  time. Snoozed threads leave the sidebar until their time, or until they
+  finish, fail, or ask you something. The **Snoozed** page lists them so you
+  can open or unsnooze one early. Add the button with
+  `bb thread-list prefs set rowActions '["thread-nav/snooze","bb--core/archive"]'`.
 
 "Unread" matches bb's own unread dot: a finished (idle or errored) top-level
 thread you haven't opened since its last update.

@@ -7,6 +7,8 @@ export const emojiValue = z.string().max(32, "Use at most 32 characters.").refin
 export const overridesSchema = z.record(z.string(), emojiValue);
 export const EMOJI_TAG = "machine-emojis";
 export const MODEL_EMOJI_TAG = "model-emojis";
+export const SNOOZE_TAG = "snoozes";
+export const threadId = z.string().min(1).max(128);
 export const modelSchema = z.object({ providerId: z.string().min(1).max(128), model: z.string().min(1).max(256) });
 export const threadModelKey = z.string().transform((value, ctx) => {
   try {
@@ -17,6 +19,16 @@ export const threadModelKey = z.string().transform((value, ctx) => {
   }
 });
 export const contract = {
+  /** Snoozed thread ids and the epoch ms each wakes at. */
+  snoozes_get: {
+    input: z.null(), output: z.record(z.string(), z.number()), tags: () => [SNOOZE_TAG],
+  },
+  snooze_set: {
+    input: z.object({ threadId, until: z.number().int().positive() }).strict(), output: z.null(),
+  },
+  snooze_clear: {
+    input: z.object({ threadId }).strict(), output: z.null(),
+  },
   model_emojis_get: {
     input: z.null(), output: overridesSchema, tags: () => [MODEL_EMOJI_TAG],
   },
