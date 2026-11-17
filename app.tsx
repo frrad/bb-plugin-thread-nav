@@ -30,6 +30,9 @@ import { MachineEmojiSettings, ModelEmojiSettings } from "./settings.tsx";
 import { pickUnreadThread } from "./order.ts";
 import { pickThreadAfterArchive } from "./pick.ts";
 import type { Direction } from "./order.ts";
+import { SnoozeOverlay, snoozeAction, useSnoozes } from "./snooze.tsx";
+import type { Snoozes } from "./snooze.tsx";
+import { SNOOZED_PANEL_PATH, SnoozedPage, SnoozedSidebar, useSnoozedBadge } from "./snoozed-panel.tsx";
 
 type SidebarThread = ReturnType<typeof experimental_useSidebarThreads>["threads"][number];
 type OpenThread = (threadId: string) => void;
@@ -109,7 +112,15 @@ function titleSelector(id: string): string {
   return `${anchor} ~ .bb-thread-title, ${anchor} ~ * .bb-thread-title`;
 }
 
-function buildStylesheet(threads: readonly SidebarThread[], unreadIds: readonly string[], overrides: EmojiOverrides, models: Record<string, Model | null>, modelOverrides: EmojiOverrides): string {
+/**
+ * Hides a snoozed thread's row, with any child threads nested under it. Each
+ * row sits in its own windowed item, so hiding the item leaves no gap.
+ */
+function hiddenRowSelector(id: string): string {
+  return `[data-sidebar-windowed-item]:has(> [data-sidebar-sticky-group] > [data-sidebar-rename-row] > span > a[data-sidebar-thread-id="${CSS.escape(id)}"])`;
+}
+
+function buildStylesheet(threads: readonly SidebarThread[], unreadIds: readonly string[], overrides: EmojiOverrides, models: Record<string, Model | null>, modelOverrides: EmojiOverrides, snoozedIds: readonly string[]): string {
   // The row anchor is an empty click target laid over the row; the title is a
   // later sibling (or inside one) carrying bb's `bb-thread-title` class.
   const bold = unreadIds.length
@@ -124,7 +135,10 @@ ${selector}::before, ${selector}::after { position: absolute; top: 0; width: 1em
 ${selector}::before { left: 0; content: ${cssString(pair[0])}; }
 ${selector}::after { left: 1em; content: ${cssString(pair[1])}; }`).join("\n");
   });
-  return bold + markers.join("\n");
+  const hidden = snoozedIds.length
+    ? `${snoozedIds.map(hiddenRowSelector).join(",\n")} { display: none !important; }\n`
+    : "";
+  return bold + hidden + markers.join("\n");
 }
 
 function modelReadKey(thread: SidebarThread): string {
@@ -140,11 +154,12 @@ function UnreadTracker() {
     keys: threads.filter(thread => !thread.isHidden && !thread.isArchived).map(modelReadKey),
     enabled: Object.values(modelOverrides ?? {}).some(Boolean),
   });
-  const unread = threads.filter(isUnreadThread);
+  const snoozes = useSnoozes();
+  const unread = threads.filter((thread) => isUnreadThread(thread) && snoozes[thread.id] === undefined);
   unreadThreads = unread;
   openThread = (threadId) => navigate.toThread(threadId);
 
-  const stylesheet = buildStylesheet(threads, unread.map((thread) => thread.id), overrides ?? {}, models ?? {}, modelOverrides ?? {});
+  const stylesheet = buildStylesheet(threads, unread.map((thread) => thread.id), overrides ?? {}, models ?? {}, modelOverrides ?? {}, Object.keys(snoozes));
   useEffect(() => {
     let style = document.getElementById(STYLE_ELEMENT_ID);
     if (style === null) {
@@ -165,6 +180,10 @@ function UnreadTracker() {
   return null;
 }
 
+function unsnoozed(threads: readonly SidebarThread[], snoozes: Snoozes): SidebarThread[] {
+  return threads.filter((thread) => snoozes[thread.id] === undefined);
+}
+
 interface Departure {
   threadId: string;
   at: number;
@@ -173,6 +192,7 @@ interface Departure {
 function ArchiveRedirect() {
   const { threadId } = useBbContext();
   const { threads, status } = experimental_useSidebarThreads();
+  const snoozes = useSnoozes();
   const navigate = useBbNavigate();
   const previousThreadId = useRef<string | null>(threadId);
   const departure = useRef<Departure | null>(null);
@@ -197,9 +217,9 @@ function ArchiveRedirect() {
     if (entry !== undefined && !entry.isArchived) return;
     departure.current = null;
     if (window.matchMedia(COMPACT_VIEWPORT_QUERY).matches) return;
-    const target = pickThreadAfterArchive({ threads, archivedThreadId: left.threadId });
+    const target = pickThreadAfterArchive({ threads: unsnoozed(threads, snoozes), archivedThreadId: left.threadId });
     if (target !== null) navigate.toThread(target);
-  }, [threadId, threads, status, navigate]);
+  }, [threadId, threads, snoozes, status, navigate]);
 
   return null;
 }
@@ -219,6 +239,17 @@ export default definePluginApp((app) => {
   });
   app.slots.experimental_appOverlay({ id: "unread-tracker", component: UnreadTracker });
   app.slots.experimental_appOverlay({ id: "archive-redirect", component: ArchiveRedirect });
+  app.slots.experimental_appOverlay({ id: "snooze-menu", component: SnoozeOverlay });
+  app.slots.experimental_threadAction(snoozeAction);
+  app.slots.navPanel({
+    id: "snoozed",
+    title: "Snoozed",
+    icon: "Clock",
+    path: SNOOZED_PANEL_PATH,
+    component: SnoozedPage,
+    experimental_sidebar: SnoozedSidebar,
+    experimental_useBadge: useSnoozedBadge,
+  });
   app.commands.register({
     id: "next-unread-thread",
     title: "Thread Nav: go to next unread thread",

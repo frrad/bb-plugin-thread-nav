@@ -3,6 +3,7 @@ import { contract, EMOJI_TAG, emojiValue, MODEL_EMOJI_TAG, modelSchema, threadMo
 
 import { usedModels } from "./used-models.ts";
 import { modelKey } from "./emojis.ts";
+import { snoozeHandlers } from "./snooze-server.ts";
 
 const MODEL_PREFIX = "model-emoji:";
 const PREFIX = "machine-emoji:";
@@ -25,7 +26,9 @@ export default async function plugin(bb: BbPluginApi): Promise<void> {
   for (const event of ["thread.active", "thread.idle", "thread.archived", "thread.unarchived", "thread.deleted"] as const) {
     bb.events.on(event, () => { bb.rpc.experimental_invalidate(["used-models"]); });
   }
+  const snooze = snoozeHandlers(bb);
   bb.rpc.register(contract, {
+    ...snooze.handlers,
     model_emojis_get: () => overridesFor(MODEL_PREFIX),
     model_emoji_set: async ({ providerId, model, emoji }) => {
       const key = MODEL_PREFIX + modelKey({ providerId, model });
