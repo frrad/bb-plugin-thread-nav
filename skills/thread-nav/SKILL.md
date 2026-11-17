@@ -1,6 +1,6 @@
 ---
 name: thread-nav
-description: Explain or rebind the Thread Nav plugin's next/previous unread thread shortcuts, its bold unread sidebar rows and machine and model emojis, and where it goes after archiving the open thread.
+description: Explain or rebind the Thread Nav plugin's next/previous unread thread shortcuts, its bold unread sidebar rows and machine and model emojis, thread snoozing and the Snoozed page, and where it goes after archiving the open thread.
 ---
 
 # Thread Nav
@@ -79,3 +79,20 @@ redirect is skipped, so archiving leaves you on bb's main page.
 
 `github.com/frrad/bb-plugin-thread-nav` (Git install tracking `main`).
 Tests: `npm test`. Build with `bb plugin build`; after merging, install with `bb plugin update thread-nav --yes`.
+
+## Snooze
+
+The `thread-nav/snooze` thread action ("Snooze…") opens a menu of preset times
+(Later today 6 PM, Tomorrow / Later this week / This weekend / Next week at
+8 AM, local time) or a date-and-time picker. Show it on sidebar row hover with
+`bb thread-list prefs set rowActions '["thread-nav/snooze","bb--core/archive"]'`;
+it is also in every thread menu. While snoozed, the action reads "Unsnooze".
+
+Snoozes are stored server-side (plugin KV, one key per thread). A thread wakes
+at its time (and is marked unread), or early when it finishes a turn, fails, or
+asks for input; archiving or deleting it drops the snooze. Snoozed rows and
+their nested children are hidden from the built-in list and skipped by the
+unread shortcuts. The **Snoozed** navigation page (count badge) lists snoozed
+threads by wake time with Open and Unsnooze. RPC: `snoozes_get`,
+`snooze_set {threadId, until}`, `snooze_clear {threadId}`, e.g.
+`bb plugin rpc call thread-nav snoozes_get`.
