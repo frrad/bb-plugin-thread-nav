@@ -93,6 +93,8 @@ at its time (and is marked unread), or early when it finishes a turn, fails, or
 asks for input; archiving or deleting it drops the snooze. Snoozed rows and
 their nested children are hidden from the built-in list and skipped by the
 unread shortcuts. The **Snoozed** navigation page lists snoozed
-threads by wake time with Open and Unsnooze. RPC: `snoozes_get`,
+threads in a filterable table ordered by wake time, with project, machine, status,
+branch, exact local wake time, remaining time, and Unsnooze. Thread titles open
+the thread. The regular sidebar stays visible on this page. RPC: `snoozes_get`,
 `snooze_set {threadId, until}`, `snooze_clear {threadId}`, e.g.
 `bb plugin rpc call thread-nav snoozes_get`.
