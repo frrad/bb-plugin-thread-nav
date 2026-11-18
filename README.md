@@ -22,8 +22,10 @@ A [bb](https://getbb.app) plugin for moving between threads quickly.
   today / Tomorrow / Later this week / This weekend / Next week, or a date and
   time. Snoozed threads leave the sidebar until their time, or until they
   finish, fail, or ask you something. The **Snoozed** page lists them so you
-  can open or unsnooze one early. Add the button with
-  `bb thread-list prefs set rowActions '["thread-nav/snooze","bb--core/archive"]'`.
+  can open or unsnooze one early. On first load after installing or upgrading,
+  the plugin adds the button automatically if a row-action slot is free. Existing
+  buttons are preserved; if all three slots are occupied, use Thread List’s
+  `rowActions` preference to choose your buttons. Later removals are respected.
 
 "Unread" matches bb's own unread dot: a finished (idle or errored) top-level
 thread you haven't opened since its last update.

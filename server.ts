@@ -3,6 +3,7 @@ import { contract, EMOJI_TAG, emojiValue, MODEL_EMOJI_TAG, modelSchema, threadMo
 
 import { usedModels } from "./used-models.ts";
 import { modelKey } from "./emojis.ts";
+import { installSnoozeRowAction } from "./snooze-row-action.ts";
 import { snoozeHandlers } from "./snooze-server.ts";
 
 const MODEL_PREFIX = "model-emoji:";
@@ -98,5 +99,6 @@ export default async function plugin(bb: BbPluginApi): Promise<void> {
       return null;
     },
   });
+  await installSnoozeRowAction(bb);
   bb.log.info("loaded");
 }
