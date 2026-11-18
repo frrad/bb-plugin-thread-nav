@@ -84,7 +84,10 @@ Tests: `npm test`. Build with `bb plugin build`; after merging, install with `bb
 
 The `thread-nav/snooze` thread action ("Snooze…") opens a menu of preset times
 (Later today 6 PM, Tomorrow / Later this week / This weekend / Next week at
-8 AM, local time) or a date-and-time picker. Show it on sidebar row hover with
+8 AM, local time) or a date-and-time picker. On first load after install or upgrade, the plugin
+adds the row button automatically if fewer than three actions are configured,
+preserving existing buttons. Setup runs once, so later removal is respected.
+If all slots are full, choose the buttons manually with
 `bb thread-list prefs set rowActions '["thread-nav/snooze","bb--core/archive"]'`;
 it is also in every thread menu. While snoozed, the action reads "Unsnooze".
 
