@@ -33,6 +33,7 @@ import type { Direction } from "./order.ts";
 import { SnoozeOverlay, snoozeAction, useSnoozes } from "./snooze.tsx";
 import type { Snoozes } from "./snooze.tsx";
 import { SNOOZED_PANEL_PATH, SnoozedPage } from "./snoozed-panel.tsx";
+import { recentsRowSelector, withDescendants } from "./recents.ts";
 
 type SidebarThread = ReturnType<typeof experimental_useSidebarThreads>["threads"][number];
 type OpenThread = (threadId: string) => void;
@@ -135,8 +136,11 @@ ${selector}::before, ${selector}::after { position: absolute; top: 0; width: 1em
 ${selector}::before { left: 0; content: ${cssString(pair[0])}; }
 ${selector}::after { left: 1em; content: ${cssString(pair[1])}; }`).join("\n");
   });
-  const hidden = snoozedIds.length
-    ? `${snoozedIds.map(hiddenRowSelector).join(",\n")} { display: none !important; }\n`
+  const hiddenSelectors = snoozedIds.length
+    ? [...snoozedIds.map(hiddenRowSelector), ...[...withDescendants(threads, snoozedIds)].map(recentsRowSelector)]
+    : [];
+  const hidden = hiddenSelectors.length
+    ? `${hiddenSelectors.join(",\n")} { display: none !important; }\n`
     : "";
   return bold + hidden + markers.join("\n");
 }

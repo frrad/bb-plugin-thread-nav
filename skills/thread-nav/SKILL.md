@@ -94,7 +94,7 @@ it is also in every thread menu. While snoozed, the action reads "Unsnooze".
 Snoozes are stored server-side (plugin KV, one key per thread). A thread wakes
 at its time (and is marked unread), or early when it finishes a turn, fails, or
 asks for input; archiving or deleting it drops the snooze. Snoozed rows and
-their nested children are hidden from the built-in list and skipped by the
+their nested children are hidden from the built-in list and the phone home screen's Recent list, and skipped by the
 unread shortcuts. The **Snoozed** navigation page lists snoozed
 threads in a filterable table ordered by wake time, with project, machine, status,
 branch, exact local wake time, remaining time, and Unsnooze. Thread titles open

@@ -20,7 +20,7 @@ A [bb](https://getbb.app) plugin for moving between threads quickly.
   viewport) this is skipped and bb's default, the main page, stays.
 - **Snooze threads.** A clock button on a row's hover actions opens Later
   today / Tomorrow / Later this week / This weekend / Next week, or a date and
-  time. Snoozed threads leave the sidebar until their time, or until they
+  time. Snoozed threads leave the sidebar and the phone home screen's Recent list until their time, or until they
   finish, fail, or ask you something. The **Snoozed** page lists them so you
   can open or unsnooze one early. On first load after installing or upgrading,
   the plugin adds the button automatically if a row-action slot is free. Existing
